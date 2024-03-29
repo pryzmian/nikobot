@@ -1,6 +1,7 @@
 import { GuildQueue, GuildQueueEvent, Track } from 'discord-player';
 import { NikoClient } from '../../structures/Client.js';
 import { BaseEvent } from '../../structures/Event.js';
+import { BaseGuildTextChannel } from 'discord.js';
 
 export default class PlayerStartEvent extends BaseEvent {
   constructor(client: NikoClient) {
@@ -11,7 +12,7 @@ export default class PlayerStartEvent extends BaseEvent {
     });
   }
 
-  public run(queue: GuildQueue, track: Track): void {
-    console.log(`Track ${track.title} started playing in ${queue.guild.name}`);
+  public async run(queue: GuildQueue<{ channel: BaseGuildTextChannel }>, track: Track): Promise<void> {
+    await queue.metadata.channel.send(`🎶 | Now playing: **${track.title}** in **${queue.channel?.name}**!`);
   }
 }
