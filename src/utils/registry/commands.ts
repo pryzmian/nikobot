@@ -2,14 +2,13 @@ import 'dotenv/config';
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { NikoClient } from '../../NikoClient.js';
+import { NikoClient } from '../../structures/Client.js';
 import { BaseCommand } from '../../structures/Command.js';
 import { REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes } from 'discord.js';
 import type { SystemOptions } from '../../types/configTypes.js';
 import config from 'config';
 
 export async function registerCommands(client: NikoClient): Promise<void> {
-  console.debug('Registering application (/) commands');
   const timeNow = performance.now();
 
   const systemOptions: SystemOptions = config.get('systemOptions');
@@ -67,8 +66,6 @@ export async function registerCommands(client: NikoClient): Promise<void> {
   // Register system commands (if any system guild IDs are provided in the config file)
   if (systemOptions.systemGuildIds.length > 0) {
     try {
-      console.debug('System guild IDs found, registering system application (/) commands for each guild');
-
       for (const guildId of systemOptions.systemGuildIds) {
         await rest.put(Routes.applicationGuildCommands(process.env.DISCORD_APPLICATION_ID!, guildId), {
           body: systemCommandsArray

@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { NikoClient } from '../../NikoClient.js';
+import { NikoClient } from '../../structures/Client.js';
 import { BaseEvent } from '../../structures/Event.js';
 
 export async function registerEvents(client: NikoClient): Promise<void> {
-  console.debug('Registering events');
   const timeNow = performance.now();
 
   const eventsPath = path.resolve('./dist/listeners');
@@ -23,7 +22,6 @@ export async function registerEvents(client: NikoClient): Promise<void> {
       const maxListeners = emitter.getMaxListeners();
       if (maxListeners !== 0) emitter.setMaxListeners(maxListeners + 1);
       emitter[event.once ? 'once' : 'on'](event.event as string, event.run.bind(event));
-      console.debug(`Registered event ${event.event as string} from ${emitter}`);
     } catch (error) {
       if (error instanceof Error) {
         console.error(`Error registering event ${event.event as string}:`, error);

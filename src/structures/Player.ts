@@ -2,7 +2,7 @@ import 'dotenv/config';
 
 import { BridgeProvider, BridgeSource } from '@discord-player/extractor';
 import { Player } from 'discord-player';
-import { NikoClient } from '../NikoClient.js';
+import { NikoClient } from './Client.js';
 
 export class NikoPlayer extends Player {
   public constructor(client: NikoClient) {

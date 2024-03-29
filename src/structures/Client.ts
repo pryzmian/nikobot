@@ -1,13 +1,13 @@
 import { Client, Collection, GatewayIntentBits, Options } from 'discord.js';
-import { registerAutocomplete } from './utils/registry/autocomplete.js';
-import { registerCommands } from './utils/registry/commands.js';
-import { registerComponents } from './utils/registry/components.js';
-import { BaseAutocomplete } from './structures/Autocomplete.js';
-import { BaseCommand } from './structures/Command.js';
-import { BaseComponent } from './structures/Component.js';
+import { registerAutocomplete } from '../utils/registry/autocomplete.js';
+import { registerCommands } from '../utils/registry/commands.js';
+import { registerComponents } from '../utils/registry/components.js';
+import { BaseAutocomplete } from './Autocomplete.js';
+import { BaseCommand } from './Command.js';
+import { BaseComponent } from './Component.js';
 import type { Player } from 'discord-player';
-import { registerEvents } from './utils/registry/events.js';
-import { NikoPlayer } from './structures/Player.js';
+import { registerEvents } from '../utils/registry/events.js';
+import { NikoPlayer } from './Player.js';
 
 export class NikoClient extends Client {
   public readonly commands: Collection<string, BaseCommand>;

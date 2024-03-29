@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { BaseComponent } from '../../structures/Component.js';
-import { NikoClient } from '../../NikoClient.js';
+import { NikoClient } from '../../structures/Client.js';
 
 export async function registerComponents(client: NikoClient): Promise<void> {
-  console.debug('Registering component interactions');
   const timeNow = performance.now();
 
   const componentsPath = path.resolve('./dist/interactions/components');

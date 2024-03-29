@@ -1,5 +1,5 @@
 import { GuildQueue, GuildQueueEvent, Track } from 'discord-player';
-import { NikoClient } from '../../NikoClient.js';
+import { NikoClient } from '../../structures/Client.js';
 import { BaseEvent } from '../../structures/Event.js';
 
 export default class PlayerStartEvent extends BaseEvent {
@@ -11,7 +11,7 @@ export default class PlayerStartEvent extends BaseEvent {
     });
   }
 
-  public run(queue: GuildQueue, track: Track) {
+  public run(queue: GuildQueue, track: Track): void {
     console.log(`Track ${track.title} started playing in ${queue.guild.name}`);
   }
 }

@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { NikoClient } from '../../NikoClient.js';
+import { NikoClient } from '../../structures/Client.js';
 import { BaseAutocomplete } from '../../structures/Autocomplete.js';
 
 export async function registerAutocomplete(client: NikoClient): Promise<void> {
-  console.debug('Registering autocomplete interactions');
   const timeNow = performance.now();
 
   const autocompletePath = path.resolve('./dist/interactions/autocomplete');

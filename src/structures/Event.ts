@@ -2,7 +2,7 @@ import EventEmitter from 'node:events';
 import { EventOptions } from '../types/event/EventOptions.js';
 import { Base } from './Base.js';
 import { ClientEvents } from 'discord.js';
-import { NikoClient } from '../NikoClient.js';
+import { NikoClient } from './Client.js';
 
 export abstract class BaseEvent<E = keyof ClientEvents | symbol> extends Base {
   public readonly client: NikoClient;

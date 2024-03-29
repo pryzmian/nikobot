@@ -8,7 +8,7 @@ import {
   MessageComponentInteraction
 } from 'discord.js';
 import { BaseEvent } from '../../structures/Event.js';
-import { NikoClient } from '../../NikoClient.js';
+import { NikoClient } from '../../structures/Client.js';
 
 export default class InteractionCreateEvent extends BaseEvent {
   constructor(client: NikoClient) {
