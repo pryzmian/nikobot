@@ -6,14 +6,14 @@ import { NikoClient } from '../../structures/Client.js';
 export async function registerComponents(client: NikoClient): Promise<void> {
   const timeNow = performance.now();
 
-  const componentsPath = path.resolve('./dist/interactions/components');
+  const componentsPath = path.resolve('./dist/components');
   const components = await fs.readdir(componentsPath);
 
   const componentModules = await Promise.all<BaseComponent>(
     components
       .filter((file) => file.endsWith('.js'))
       .map(async (component) => {
-        const { default: Component } = await import(`../../interactions/components/${component}`);
+        const { default: Component } = await import(`../../components/${component}`);
         return new Component();
       })
   );

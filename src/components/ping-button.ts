@@ -1,5 +1,5 @@
 import { ComponentType, type MessageComponentInteraction } from "discord.js";
-import { BaseComponent } from "../../structures/Component.js";
+import { BaseComponent } from "../structures/Component.js";
 
 export default class PingButton extends BaseComponent {
   public constructor() {

@@ -5,7 +5,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "start": "node .",
-    "build": "tsc"
+    "build": "tsc",
+    "eslint": "eslint ./src",
+    "eslint:fix": "eslint ./src --fix"
   },
   "repository": {
     "type": "git",

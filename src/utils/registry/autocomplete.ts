@@ -6,14 +6,14 @@ import { BaseAutocomplete } from '../../structures/Autocomplete.js';
 export async function registerAutocomplete(client: NikoClient): Promise<void> {
   const timeNow = performance.now();
 
-  const autocompletePath = path.resolve('./dist/interactions/autocomplete');
+  const autocompletePath = path.resolve('./dist/autocomplete');
   const autocomplete = await fs.readdir(autocompletePath);
 
   const autocompleteModules = await Promise.all<BaseAutocomplete>(
     autocomplete
       .filter((file) => file.endsWith('.js'))
       .map(async (autocomplete) => {
-        const { default: Autocomplete } = await import(`../../interactions/autocomplete/${autocomplete}`);
+        const { default: Autocomplete } = await import(`../../autocomplete/${autocomplete}`);
         return new Autocomplete();
       })
   );

@@ -15,21 +15,21 @@ export async function registerCommands(client: NikoClient): Promise<void> {
   const userCommandsArray: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
   const systemCommandsArray: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
 
-  const baseCommandsPath = path.resolve('./dist/interactions/commands');
+  const baseCommandsPath = path.resolve('./dist/commands');
   const commands = await fs.readdir(baseCommandsPath);
 
   const commandModules = await Promise.all<BaseCommand>(
     commands
       .filter((file) => file.endsWith('.js'))
       .map(async (command) => {
-        const { default: Command } = await import(`../../interactions/commands/${command}`);
+        const { default: Command } = await import(`../../commands/${command}`);
         return new Command();
       })
   );
 
   for (const command of commandModules) {
     try {
-      const commandPath = path.resolve(`./dist/interactions/commands/`);
+      const commandPath = path.resolve(`./dist/commands/`);
       delete require.cache[require.resolve(`${commandPath}/${command.data.name}`)];
 
       client.commands.delete(command.data.name);
@@ -56,10 +56,10 @@ export async function registerCommands(client: NikoClient): Promise<void> {
 
   // Register global commands (user commands)
   try {
-    await rest.put(Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID!), { body: userCommandsArray });
+    await rest.put(Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID!), { body: userCommandsArray.flat() });
   } catch (error) {
     if (error instanceof Error) {
-      console.error(error, 'Error registering system application (/) commands:');
+      console.error('Error registering system application (/) commands:', error);
     }
   }
 
@@ -68,7 +68,7 @@ export async function registerCommands(client: NikoClient): Promise<void> {
     try {
       for (const guildId of systemOptions.systemGuildIds) {
         await rest.put(Routes.applicationGuildCommands(process.env.DISCORD_APPLICATION_ID!, guildId), {
-          body: systemCommandsArray
+          body: systemCommandsArray.flat()
         });
       }
 
@@ -77,7 +77,7 @@ export async function registerCommands(client: NikoClient): Promise<void> {
       );
     } catch (error) {
       if (error instanceof Error) {
-        console.error(error, 'Error registering system application (/) commands:');
+        console.error('Error registering system application (/) commands:', error);
       }
     }
   }
