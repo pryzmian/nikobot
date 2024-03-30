@@ -1,7 +1,4 @@
-
 export abstract class Base {
-
-  public constructor() {
-  }
-  //datos pa los comandos
+    public constructor() {}
+    //datos pa los comandos
 }

@@ -1,6 +1,6 @@
-import type { ComponentType } from "discord.js";
+import type { ComponentType } from 'discord.js';
 
-export interface ComponentOptions {
-  name: string;
-  type: ComponentType;
-}
+export type ComponentOptions = {
+    name: string;
+    type: ComponentType;
+};

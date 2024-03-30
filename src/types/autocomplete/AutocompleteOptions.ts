@@ -1,3 +1,3 @@
-export interface AutocompleteOptions {
-  name: string;
-}
+export type AutocompleteOptions = {
+    name: string;
+};
