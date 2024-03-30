@@ -120,7 +120,7 @@ export default class QueueCommand extends BaseCommand {
         const totalPages = Math.max(1, Math.ceil(queueSize / tracksToDisplay));
 
         const responseEmbed = new EmbedBuilder()
-            .setColor(interaction.guild?.members.me?.displayHexColor!)
+            .setColor(interaction.guild!.members.me!.displayHexColor!)
             .setDescription(embedDescription.join(''))
             .setFooter({
                 text: totalPages === 1 ? 'Page 1 of 1' : `Page ${currentPage + 1} of ${totalPages}`
