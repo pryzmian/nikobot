@@ -51,7 +51,7 @@ export default class PlayerStartEvent extends BaseEvent {
                 name: track.requestedBy?.username || 'Unknown User',
                 iconURL: track.requestedBy?.displayAvatarURL() || undefined
             })
-            .setDescription(`**Now playing ♪**\n> [\`${track.title}\`](${track.url})`)
+            .setDescription(`**Now playing ♪**\n[**${track.title}**](${track.url})`)
             .setThumbnail(track.thumbnail)
             .toJSON();
     }
