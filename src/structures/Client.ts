@@ -1,4 +1,4 @@
-import { Client, Collection, GatewayIntentBits, Options } from 'discord.js';
+import { Client, Collection, GatewayIntentBits, Options, Partials } from 'discord.js';
 import { registerAutocomplete } from '../utils/registry/autocomplete.js';
 import { registerCommands } from '../utils/registry/commands.js';
 import { registerComponents } from '../utils/registry/components.js';
@@ -16,7 +16,13 @@ export class NikoClient extends Client {
 
     public constructor() {
         super({
-            intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates],
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMembers,
+                GatewayIntentBits.GuildVoiceStates,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.MessageContent
+            ],
             makeCache: Options.cacheWithLimits({
                 ...Options.DefaultMakeCacheSettings,
                 MessageManager: 10, // Reduce cache size for messages
@@ -26,6 +32,16 @@ export class NikoClient extends Client {
                     keepOverLimit: (member) => member.id === this.user?.id
                 }
             }),
+            partials: [
+                Partials.Message,
+                Partials.User,
+                Partials.Channel,
+                Partials.GuildMember
+            ],
+            allowedMentions: {
+                parse: ['users'],
+                repliedUser: false
+            },
             sweepers: Options.DefaultSweeperSettings
         });
 
@@ -33,6 +49,10 @@ export class NikoClient extends Client {
         this.components = new Collection();
         this.autocomplete = new Collection();
         this.player = new NikoPlayer(this);
+    }
+
+    public static getInstance(): NikoClient {
+        return new NikoClient();
     }
 
     public override async login(token: string): Promise<string> {

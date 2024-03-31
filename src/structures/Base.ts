@@ -1,4 +1,9 @@
+import { NikoClient } from './Client';
+
 export abstract class Base {
-    public constructor() {}
-    //datos pa los comandos
+    public readonly client: NikoClient;
+
+    public constructor() {
+        this.client = NikoClient.getInstance();
+    }
 }
