@@ -2,7 +2,7 @@
   "name": "nikobot",
   "version": "1.0.0",
   "description": "discord bot for niko Bv",
-  "main": "./dist/index.js",
+  "main": "./database/index.js",
   "scripts": {
     "start": "node .",
     "build": "tsc",
