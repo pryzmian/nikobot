@@ -41,15 +41,15 @@ export class NikoClient extends Client {
             sweepers: {
                 ...Options.DefaultSweeperSettings,
                 users: {
-                    interval: 1_000,
+                    interval: 3_600,
                     filter: () => (user) => user.bot && user.id !== this.user?.id // Remove bot users
                 },
                 messages: {
-                    interval: 1_000, // every hour
+                    interval: 3_600, // every hour
                     lifetime: 432000 // Remove messages older than 5 days
                 },
                 guildMembers: {
-                    interval: 60,
+                    interval: 3_600,
                     filter: () => (member) => member.user.bot && member.user.id !== this.user?.id // Remove bot members
                 }
             },
