@@ -2,7 +2,7 @@
   "name": "nikobot",
   "version": "1.0.0",
   "description": "discord bot for niko Bv",
-  "main": "./database/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "start": "node .",
     "build": "tsc",
@@ -42,7 +42,6 @@
     "discord.js": "14.14.1",
     "dotenv": "16.4.5",
     "mediaplex": "0.0.9",
-    "mongodb": "^6.5.0",
     "mongoose": "8.2.4",
     "pino": "8.19.0",
     "pino-loki": "2.2.1",

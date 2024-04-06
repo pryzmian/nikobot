@@ -86,7 +86,7 @@ export default class PingCommand extends BaseCommand {
         });
 
         const resultMessage = searchResult.hasPlaylist()
-            ? `Queued playlist [${searchResult.playlist?.title}](${searchResult.playlist?.url}) with ${searchResult.playlist?.tracks.length} songs!`
+            ? `Queued playlist [${searchResult.playlist?.title}](${searchResult.playlist?.url}) with \`${searchResult.playlist?.tracks.length}\` songs!`
             : `Queued [${searchResult.tracks[0].title}](${searchResult.tracks[0].url})!`;
 
         embedResponse.setDescription(resultMessage).setColor('Green');

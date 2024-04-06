@@ -2,7 +2,7 @@ import { GuildQueue, GuildQueueEvent, Track } from 'discord-player';
 import { NikoClient } from '../../structures/Client.js';
 import { BaseEvent } from '../../structures/Event.js';
 import { IQueueMetadata } from '../../types/queueMetadata.js';
-import { APIEmbed, ColorResolvable, EmbedBuilder, BaseGuildTextChannel } from 'discord.js';
+import { APIEmbed, ColorResolvable, EmbedBuilder } from 'discord.js';
 
 export default class PlayerStartEvent extends BaseEvent {
     constructor(client: NikoClient) {
@@ -15,14 +15,10 @@ export default class PlayerStartEvent extends BaseEvent {
 
     public async execute(queue: GuildQueue<IQueueMetadata>, track: Track): Promise<void> {
         const { channel } = queue.metadata;
+        const fetchedChannel = await this.client.channels.fetch(channel.id);
 
-        if (!channel) {
+        if (!fetchedChannel) {
             console.error('playerStart listener: Channel not found.');
-            return;
-        }
-
-        if (!(channel instanceof BaseGuildTextChannel)) {
-            console.error('playerStart listener: Channel is not a text channel.');
             return;
         }
 
@@ -31,9 +27,8 @@ export default class PlayerStartEvent extends BaseEvent {
             return;
         }
 
-        const nowPlayingEmbed = this.buildNowPlayingEmbed(track, queue.guild.members.me?.displayHexColor);
-
         try {
+            const nowPlayingEmbed = this.buildNowPlayingEmbed(track, queue.guild.members.me?.displayHexColor);
             const announceMessage = await channel.send({ embeds: [nowPlayingEmbed] });
 
             if (queue.metadata && announceMessage) {
