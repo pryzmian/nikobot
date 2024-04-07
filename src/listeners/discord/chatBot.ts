@@ -1,7 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Content, GoogleGenerativeAI } from '@google/generative-ai';
 import { BaseEvent } from '../../structures/Event.js';
 import { NikoClient } from '../../structures/Client.js';
 import { ChannelType, Events, Message } from 'discord.js';
+import { ChatHistoryModel } from '../../database/models/ChatBot.js';
 
 // Regular expression to match mentions
 const mentionRegex = /^<@!?(\d+)>/;
@@ -51,25 +52,10 @@ export default class MessageCreateEvent extends BaseEvent {
         }
 
         try {
-            // Initialize Google Generative AI instance
-            const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
-            // Get generative model (Gemini Pro)
-            const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-            // Generate content based on the prompt
-            const result = await model.generateContent(prompt);
-            const response = result.response;
-            const text = response.text;
-
-            // Optimize chunking based on response length
-            const chunks = [];
-            for (let i = 0; i < text().length; i += 2000) {
-                chunks.push(text().substring(i, i + 2000));
-            }
-
-            // Reply with the generated chunks
-            for (const chunk of chunks) {
-                await message.reply({ content: chunk });
+            const userRepliedToBot =
+                message.reference?.messageId && (await message.fetchReference()).author.id === message.client.user.id;
+            if (mentionMatch || (userRepliedToBot && (await message.fetchReference()).author.id === message.client.user.id)) {
+                await this.handleChat(message, prompt);
             }
         } catch (error) {
             console.error('Error generating content: ', error);
@@ -78,10 +64,81 @@ export default class MessageCreateEvent extends BaseEvent {
                 content:
                     'Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo más tarde.'
             });
+            return;
         }
     }
 
-    private async handleChat(message: Message, client: NikoClient) {
-        
+    private async handleChat(message: Message, userInput: string): Promise<void> {
+        try {
+            // Check if the guild has a chat history
+            let chatHistory = await ChatHistoryModel.findOne({ guildId: message.guildId! });
+
+            if (!chatHistory) {
+                // Create a new chat history if it doesn't exist
+                chatHistory = new ChatHistoryModel({
+                    guildId: message.guildId!,
+                    history: []
+                });
+            }
+
+            // Create a new instance of GoogleGenerativeAI with your API key
+            const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+
+            // Get the generative model (gemini-pro)
+            const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+            // Start a new chat session with the model, passing the updated chat history
+            const chat = model.startChat({
+                history: [
+                    ...chatHistory.history.map(
+                        (line, index) =>
+                            ({
+                                role: index % 2 === 0 ? 'user' : 'model',
+                                parts: [{ text: line.parts[0].text }]
+                            }) as Content
+                    )
+                ]
+            });
+
+            // Send the user's message to the model and get the response
+            const result = await chat.sendMessage(userInput);
+            const response = result.response;
+            const text = response.text();
+
+            // Save bot response to chat history
+            const botChatMessage: Content = {
+                role: 'model',
+                parts: [{ text }]
+            };
+
+            // Save user input to chat history
+            const userChatMessage: Content = {
+                role: 'user',
+                parts: [{ text: userInput }]
+            };
+
+            chatHistory.history.push(userChatMessage);
+            chatHistory.history.push(botChatMessage);
+
+            // Update and save chat history to the database after receiving the response
+            await chatHistory.save();
+
+            // Optimize chunking based on response length and send response chunks
+            const chunks = [];
+            for (let i = 0; i < text.length; i += 2000) {
+                chunks.push(text.substring(i, i + 2000));
+            }
+
+            for (const chunk of chunks) {
+                await message.reply({ content: chunk });
+            }
+        } catch (error) {
+            console.error('Error handling chat:', error);
+            await message.reply({
+                content:
+                    'Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo más tarde.'
+            });
+            return;
+        }
     }
 }

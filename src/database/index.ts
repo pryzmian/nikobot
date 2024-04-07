@@ -6,7 +6,7 @@ export async function connectToDatabase(): Promise<Mongoose | undefined> {
     try {
         console.log('Successfully connected to the database');
         return await connect(uri, {
-            dbName: 'nikobot',
+            dbName: 'nikobot'
         });
     } catch (error) {
         console.error('error when connecting to the database:', error);
