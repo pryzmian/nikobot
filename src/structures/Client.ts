@@ -1,4 +1,13 @@
-import { ActivityType, Client, Collection, GatewayIntentBits, Options, Partials } from 'discord.js';
+import {
+    ActivityType,
+    Client,
+    Collection,
+    GatewayIntentBits,
+    Options,
+    Partials,
+    PresenceUpdateStatus,
+    PresenceStatusData
+} from 'discord.js';
 import { registerAutocomplete } from '../utils/registry/autocomplete.js';
 import { registerCommands } from '../utils/registry/commands.js';
 import { registerComponents } from '../utils/registry/components.js';
@@ -56,11 +65,13 @@ export class NikoClient extends Client {
             presence: {
                 activities: [
                     {
-                        name: 'tus temazos 😎',
+                        name: 'your prompts',
+                        state: 'Pero oiga, sea serio pues 💢',
                         type: ActivityType.Streaming,
                         url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
                     }
-                ]
+                ],
+                status: PresenceUpdateStatus.Offline as PresenceStatusData
             }
         });
 

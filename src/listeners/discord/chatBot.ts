@@ -1,11 +1,11 @@
-import { Content, GoogleGenerativeAI } from '@google/generative-ai';
 import { BaseEvent } from '../../structures/Event.js';
 import { NikoClient } from '../../structures/Client.js';
 import { ChannelType, Events, Message } from 'discord.js';
-import { ChatHistoryModel } from '../../database/models/ChatBot.js';
+import { ChatHistoryDocument, ChatHistoryModel } from '../../database/models/ChatBot.js';
+import { Content, GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 
 // Regular expression to match mentions
-const mentionRegex = /^<@!?(\d+)>/;
+const mentionRegex = new RegExp(/^<@!?(\d+)>/);
 
 export default class MessageCreateEvent extends BaseEvent {
     /**
@@ -25,120 +25,128 @@ export default class MessageCreateEvent extends BaseEvent {
      * @returns {Promise<void>} A Promise that resolves when execution is complete.
      */
     public async execute(message: Message): Promise<void> {
-        // Ignore messages from bots or in DMs
-        if (message.author.bot || message.channel.type === ChannelType.DM) {
+        if (this.shouldIgnoreMessage(message)) {
             return;
         }
 
-        // Check if the message mentions the bot
         const mentionMatch = message.content.match(mentionRegex);
         if (!mentionMatch || mentionMatch[1] !== message.client.user.id) {
             return;
         }
 
-        // Extract arguments from the message
-        const args = message.content.slice(mentionMatch[0].length).trim().split(/ +/g);
-        const prompt = args.join(' ').toLowerCase();
+        const prompt = this.extractPrompt(message.content, mentionMatch);
 
-        // Send typing indicator
         await message.channel.sendTyping();
 
-        // Handle empty prompt
-        if (mentionMatch && !prompt) {
-            await message.reply({
-                content: 'Hola, soy Niko! ¿En qué puedo ayudarte?'
-            });
+        if (!prompt) {
+            await this.replyDefaultGreeting(message);
             return;
         }
 
         try {
-            const userRepliedToBot =
-                message.reference?.messageId && (await message.fetchReference()).author.id === message.client.user.id;
-            if (mentionMatch || (userRepliedToBot && (await message.fetchReference()).author.id === message.client.user.id)) {
-                await this.handleChat(message, prompt);
-            }
+            await this.handleChat(message, prompt);
         } catch (error) {
-            console.error('Error generating content: ', error);
-            // Reply with error message
-            await message.reply({
-                content:
-                    'Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo más tarde.'
-            });
-            return;
+            if (error instanceof Error) {
+                if (error.message.includes('Response was blocked due to SAFETY')) {
+                    await this.replyErrorMessage(
+                        message,
+                        'Lo siento, no puedo responder a eso. Por favor, intenta con otra pregunta.'
+                    );
+                }
+            }
         }
     }
 
+    private shouldIgnoreMessage(message: Message): boolean {
+        return message.author.bot || message.channel.type === ChannelType.DM;
+    }
+
+    private extractPrompt(messageContent: string, mentionMatch: RegExpMatchArray): string {
+        const args = messageContent.slice(mentionMatch[0].length).trim().split(/ +/g);
+        return args.join(' ').toLowerCase();
+    }
+
+    private async replyDefaultGreeting(message: Message): Promise<void> {
+        await message.reply({
+            content: 'Hola, soy Niko! ¿En qué puedo ayudarte?'
+        });
+    }
+
     private async handleChat(message: Message, userInput: string): Promise<void> {
-        try {
-            // Check if the guild has a chat history
-            let chatHistory = await ChatHistoryModel.findOne({ guildId: message.guildId! });
+        const chatHistory = await this.getOrCreateChatHistory(message.guildId!);
 
-            if (!chatHistory) {
-                // Create a new chat history if it doesn't exist
-                chatHistory = new ChatHistoryModel({
-                    guildId: message.guildId!,
-                    history: []
-                });
+        const safetySettings = [
+            {
+                category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                threshold: HarmBlockThreshold.BLOCK_NONE
+            },
+            {
+                category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                threshold: HarmBlockThreshold.BLOCK_NONE
+            },
+            {
+                category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                threshold: HarmBlockThreshold.BLOCK_NONE
+            },
+            {
+                category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                threshold: HarmBlockThreshold.BLOCK_NONE
+            },
+            {
+                category: HarmCategory.HARM_CATEGORY_UNSPECIFIED,
+                threshold: HarmBlockThreshold.BLOCK_NONE
             }
+        ];
 
-            // Create a new instance of GoogleGenerativeAI with your API key
-            const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro', ...safetySettings });
 
-            // Get the generative model (gemini-pro)
-            const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-            // Start a new chat session with the model, passing the updated chat history
-            const chat = model.startChat({
-                history: [
-                    ...chatHistory.history.map(
-                        (line, index) =>
-                            ({
-                                role: index % 2 === 0 ? 'user' : 'model',
-                                parts: [{ text: line.parts[0].text }]
-                            }) as Content
-                    )
-                ]
-            });
-
-            // Send the user's message to the model and get the response
-            const result = await chat.sendMessage(userInput);
-            const response = result.response;
-            const text = response.text();
-
-            // Save bot response to chat history
-            const botChatMessage: Content = {
-                role: 'model',
-                parts: [{ text }]
-            };
-
-            // Save user input to chat history
-            const userChatMessage: Content = {
-                role: 'user',
-                parts: [{ text: userInput }]
-            };
-
-            chatHistory.history.push(userChatMessage);
-            chatHistory.history.push(botChatMessage);
-
-            // Update and save chat history to the database after receiving the response
-            await chatHistory.save();
-
-            // Optimize chunking based on response length and send response chunks
-            const chunks = [];
-            for (let i = 0; i < text.length; i += 2000) {
-                chunks.push(text.substring(i, i + 2000));
+        const chat = model.startChat({
+            history: [
+                ...(chatHistory.history.map((line, index) => ({
+                    role: index % 2 === 0 ? 'user' : 'model',
+                    parts: [{ text: line.parts[0].text }]
+                })) as Content[])
+            ],
+            generationConfig: {
+                maxOutputTokens: 1000
             }
+        });
 
-            for (const chunk of chunks) {
-                await message.reply({ content: chunk });
-            }
-        } catch (error) {
-            console.error('Error handling chat:', error);
-            await message.reply({
-                content:
-                    'Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo más tarde.'
-            });
-            return;
+        const result = await chat.sendMessage(userInput);
+        const text = result.response.text();
+
+        const botChatMessage: Content = { role: 'model', parts: [{ text }] };
+        const userChatMessage: Content = { role: 'user', parts: [{ text: userInput }] };
+
+        chatHistory.history.push(userChatMessage, botChatMessage);
+        await chatHistory.save();
+
+        await this.sendResponseInChunks(message, text);
+    }
+
+    private async getOrCreateChatHistory(guildId: string): Promise<ChatHistoryDocument> {
+        let chatHistory = await ChatHistoryModel.findOne({ guildId });
+        if (!chatHistory) {
+            chatHistory = new ChatHistoryModel({ guildId, history: [] });
         }
+        return chatHistory as ChatHistoryDocument;
+    }
+
+    private async sendResponseInChunks(message: Message, text: string): Promise<void> {
+        const chunks = [];
+        for (let i = 0; i < text.length; i += 2000) {
+            chunks.push(text.substring(i, i + 2000));
+        }
+
+        for (const chunk of chunks) {
+            await message.reply({ content: chunk });
+        }
+    }
+
+    private async replyErrorMessage(message: Message, description: string): Promise<void> {
+        await message.reply({
+            content: description
+        });
     }
 }

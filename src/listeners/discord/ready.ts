@@ -20,6 +20,6 @@ export default class ReadyEvent extends BaseEvent {
      * @returns {void} This method does not return a value.
      */
     public execute(client: NikoClient): void {
-        console.log(`Logged in as ${client.user?.username}`);
+        console.log(`${client.user?.username} is now ready!`);
     }
 }

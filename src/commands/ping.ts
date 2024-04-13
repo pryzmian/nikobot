@@ -5,7 +5,6 @@ export default class PingCommand extends BaseCommand {
     public constructor() {
         super({
             isBeta: true,
-            isSystemCommand: true,
             data: new SlashCommandBuilder().setName('ping').setDescription("Check the bot's latency")
         });
     }

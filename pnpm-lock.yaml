@@ -29,6 +29,9 @@ dependencies:
   dotenv:
     specifier: 16.4.5
     version: 16.4.5
+  google-safe-browsing:
+    specifier: 1.0.3
+    version: 1.0.3
   mediaplex:
     specifier: 0.0.9
     version: 0.0.9
@@ -44,6 +47,9 @@ dependencies:
   pino-pretty:
     specifier: 11.0.0
     version: 11.0.0
+  tmux:
+    specifier: ^1.0.0
+    version: 1.0.0
   youtube-ext:
     specifier: 1.1.16
     version: 1.1.16
@@ -2243,6 +2249,12 @@ packages:
       slash: 3.0.0
     dev: true
 
+  /google-safe-browsing@1.0.3:
+    resolution: {integrity: sha512-eSJYdSfSRQp5skSAjBmiHP1mzNa8aKq22x5wV6vCCxhfF0xRCy62Yv+3S1EwCaDZhrr14grENtZDilsoAorLrg==}
+    dependencies:
+      node-fetch: 2.6.1
+    dev: false
+
   /got@11.8.6:
     resolution: {integrity: sha512-6tfZ91bOr7bOXnK7PRDCGBLa1H4U080YHNaAQ2KsMGlLEzRbk44nsZF2E1IeRc3vtJHPVbKCYgdFbaGO2ljd8g==}
     engines: {node: '>=10.19.0'}
@@ -3301,6 +3313,11 @@ packages:
     engines: {node: '>=10.5.0'}
     dev: false
 
+  /node-fetch@2.6.1:
+    resolution: {integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==}
+    engines: {node: 4.x || >=6.0.0}
+    dev: false
+
   /node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
     engines: {node: 4.x || >=6.0.0}
@@ -3972,6 +3989,11 @@ packages:
   /tmpl@1.0.5:
     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
     dev: true
+
+  /tmux@1.0.0:
+    resolution: {integrity: sha512-56dqTkuDc7jtYKDnY5aoLk4G1NRQUEFsEAyW5rXatU8/mj7ixBYFErHlubMzotEmBF/FTSmLpOvTF5/imEUkqA==}
+    deprecated: Package no longer supported. Contact support@npmjs.com for more info.
+    dev: false
 
   /to-fast-properties@2.0.0:
     resolution: {integrity: sha512-/OaKK0xYrs3DmxRYqL/yDc+FxFUVYhDlXMhRmv3z915w2HF1tnN1omB354j8VUGO/hbRzyD6Y3sA7v7GS/ceog==}

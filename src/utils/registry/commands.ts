@@ -59,7 +59,7 @@ export async function registerCommands(client: NikoClient): Promise<void> {
     // Register global commands (user commands)
     try {
         await rest.put(Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID!), {
-            body: userCommandsArray.flat()
+            body: userCommandsArray
         });
     } catch (error) {
         if (error instanceof Error) {
@@ -72,7 +72,7 @@ export async function registerCommands(client: NikoClient): Promise<void> {
         try {
             for (const guildId of systemOptions.systemGuildIds) {
                 await rest.put(Routes.applicationGuildCommands(process.env.DISCORD_APPLICATION_ID!, guildId), {
-                    body: systemCommandsArray.flat()
+                    body: systemCommandsArray
                 });
             }
 

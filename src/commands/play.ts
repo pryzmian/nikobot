@@ -6,7 +6,7 @@ import {
     SlashCommandBuilder
 } from 'discord.js';
 import { BaseCommand } from '../structures/Command.js';
-import { useMainPlayer } from 'discord-player';
+import { QueueRepeatMode, useMainPlayer } from 'discord-player';
 
 export default class PingCommand extends BaseCommand {
     public constructor() {
@@ -73,9 +73,10 @@ export default class PingCommand extends BaseCommand {
 
         await player.play(memberChannel, searchResult, {
             nodeOptions: {
-                leaveOnEmptyCooldown: 180000,
+                leaveOnEmpty: false,
                 leaveOnEnd: false,
                 leaveOnStop: false,
+                repeatMode: QueueRepeatMode.AUTOPLAY,
                 volume: 50,
                 metadata: {
                     client: interaction.client,

@@ -13,6 +13,7 @@ export abstract class BaseCommand extends Base implements CommandBase {
         super();
         this.isDev = options.isDev;
         this.isBeta = options.isBeta;
+        this.isSystemCommand = options.isSystemCommand;
         this.data = options.data;
     }
 
