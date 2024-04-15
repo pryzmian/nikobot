@@ -1,33 +1,21 @@
-import { GuildQueue, PlayerProgressbarOptions, useQueue } from 'discord-player';
+import { GuildMember, CacheType, ButtonInteraction, ChatInputCommandInteraction, APIActionRowComponent, APIMessageActionRowComponent } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import { BaseCommand } from '../structures/Command.js';
-import {
-    ChatInputCommandInteraction,
-    SlashCommandBuilder,
-    EmbedBuilder,
-    GuildMember,
-    CacheType,
-    ButtonInteraction,
-    APIActionRowComponent,
-    APIMessageActionRowComponent,
-    ButtonBuilder,
-    ButtonStyle,
-    ComponentType
-} from 'discord.js';
+import { GuildQueue, useQueue } from 'discord-player';
 
 export default class QueueCommand extends BaseCommand {
-    public constructor() {
+    constructor() {
         super({
             isBeta: true,
             data: new SlashCommandBuilder().setName('queue').setDescription('Displays the current queue.')
         });
     }
 
-    public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
-        const memberChannel = (interaction.member as GuildMember).voice.channel;
-        const botChannel = interaction.guild?.members.me?.voice.channel;
+    async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
+        const memberChannel = (interaction.member as GuildMember)?.voice?.channel;
+        const botChannel = interaction.guild?.members?.me?.voice?.channel;
         const embedResponse = new EmbedBuilder();
 
-        // Check if the member is in a voice channel
         if (!memberChannel) {
             embedResponse
                 .setDescription('You need to be in a voice channel to view the current queue!')
@@ -36,7 +24,6 @@ export default class QueueCommand extends BaseCommand {
             return;
         }
 
-        // Check if the bot is in a voice channel
         if (botChannel && memberChannel.id !== botChannel.id) {
             embedResponse
                 .setDescription('You need to be in the same voice channel as me to view the current queue!')
@@ -56,30 +43,26 @@ export default class QueueCommand extends BaseCommand {
         try {
             await this.handleQueuePagination(interaction, queue);
         } catch (error) {
-            if (error instanceof Error) {
-                console.error('There was an error while handling the queue pagination:', error);
-            }
+            console.error('Error handling queue pagination:', error instanceof Error ? error : 'Unknown error');
         }
     }
 
-    private getTracksMap(queue: GuildQueue, currentPage: number, tracksToDisplay: number): string {
+    private getTracksDescription(queue: GuildQueue, currentPage: number, tracksToDisplay: number): string {
         const start = currentPage * tracksToDisplay;
         const tracks = queue.tracks
             .toArray()
             .slice(start, start + tracksToDisplay)
             .map(
-                (t, index) =>
-                    `**${start + index + 1}.** \`${t.raw ? t.raw.duration : t.duration}\` | [**${t.raw ? t.raw.title : t.title}**](${
-                        t.raw ? t.raw.url : t.url
-                    })`
+                (track, index) =>
+                    `**${start + index + 1}.** \`${track.raw?.duration || track.duration}\` | [**${track.raw?.title || track.title}**](${track.raw?.url || track.url})`
             )
             .join('\n');
 
         return tracks || 'There are no songs in the playback queue. Use the `/play` command to add a song.';
     }
 
-    private createProgressBar(queue: GuildQueue) {
-        const progressBarOptions: PlayerProgressbarOptions = {
+    private createProgressBar(queue: GuildQueue): string {
+        const progressBarOptions = {
             leftChar: '▇',
             indicator: '‎',
             rightChar: '▁',
@@ -90,11 +73,12 @@ export default class QueueCommand extends BaseCommand {
         return queue.node.createProgressBar(progressBarOptions) || '';
     }
 
-    private async handleQueuePagination(interaction: ChatInputCommandInteraction, queue: GuildQueue) {
+    private async handleQueuePagination(interaction: ChatInputCommandInteraction, queue: GuildQueue): Promise<void> {
         const tracksToDisplay = 10;
-        const queueSize = queue.tracks.size;
+        const totalPages = Math.max(1, Math.ceil(queue.tracks.size / tracksToDisplay));
+        let currentPage = 0;
 
-        const buttonsBuilders: ButtonBuilder[] = [
+        const buttonsBuilders = [
             new ButtonBuilder().setCustomId('fast_previous_page').setLabel('First').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('previous_page').setLabel('Previous').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('next_page').setLabel('Next').setStyle(ButtonStyle.Secondary),
@@ -103,29 +87,25 @@ export default class QueueCommand extends BaseCommand {
 
         const actionRow: APIActionRowComponent<APIMessageActionRowComponent> = {
             type: ComponentType.ActionRow,
-            components: buttonsBuilders.map((b) => b.toJSON())
+            components: buttonsBuilders.map((builder) => builder.toJSON())
         };
 
-        let currentPage = 0;
-        const currentTrackDuration = queue.currentTrack?.duration ?? queue.currentTrack?.raw.duration;
-        const currentTrackTitle = queue.currentTrack?.title ?? queue.currentTrack?.raw.title;
-        const currentTrackUrl = queue.currentTrack?.url ?? queue.currentTrack?.raw.url;
-        const currentTrackThumbnail = queue.currentTrack?.thumbnail ?? queue.currentTrack?.raw.thumbnail;
+        const currentTrack = queue.currentTrack!;
+        const currentTrackDuration = currentTrack.duration || currentTrack.raw?.duration || '';
+        const currentTrackTitle = currentTrack.title || currentTrack.raw?.title || '';
+        const currentTrackUrl = currentTrack.url || currentTrack.raw?.url || '';
+        const currentTrackThumbnail = currentTrack.thumbnail || currentTrack.raw?.thumbnail || '';
 
         const embedDescription = [
             `**Now Playing:**\n\`${currentTrackDuration}\` | [**${currentTrackTitle}**](${currentTrackUrl})\n${this.createProgressBar(queue)}\n\n`,
-            `**Up Next:**\n${this.getTracksMap(queue, currentPage, tracksToDisplay)}`
+            `**Up Next:**\n${this.getTracksDescription(queue, currentPage, tracksToDisplay)}`
         ];
 
-        const totalPages = Math.max(1, Math.ceil(queueSize / tracksToDisplay));
-
         const responseEmbed = new EmbedBuilder()
-            .setColor(interaction.guild!.members.me!.displayHexColor!)
+            .setColor(interaction.guild?.members?.me?.displayHexColor || 'Default')
             .setDescription(embedDescription.join(''))
-            .setFooter({
-                text: totalPages === 1 ? 'Page 1 of 1' : `Page ${currentPage + 1} of ${totalPages}`
-            })
-            .setThumbnail(currentTrackThumbnail!);
+            .setFooter({ text: totalPages === 1 ? 'Page 1 of 1' : `Page ${currentPage + 1} of ${totalPages}` })
+            .setThumbnail(currentTrackThumbnail);
 
         const response = await interaction.reply({
             embeds: [responseEmbed],
@@ -134,83 +114,58 @@ export default class QueueCommand extends BaseCommand {
         });
 
         const collector = response.createMessageComponentCollector({
-            filter: (b) => b.user.id === interaction.user.id,
+            filter: (button) => button instanceof ButtonInteraction && button.user.id === interaction.user.id,
             time: 60000
         });
 
         collector.on('collect', async (button: ButtonInteraction) => {
             collector.resetTimer();
+            const update = async (): Promise<void> => {
+                const newDescription = [
+                    `**Now Playing:**\n\`${currentTrackDuration}\` | [**${currentTrackTitle}**](${currentTrackUrl})\n${this.createProgressBar(queue)}\n\n`,
+                    `**Up Next:**\n${this.getTracksDescription(queue, currentPage, tracksToDisplay)}`
+                ];
 
-            if (button.customId === 'fast_previous_page') {
-                if (currentPage === 0) {
-                    await button.reply({
-                        content: 'You are already on the first page.',
-                        ephemeral: true
-                    });
-                    return;
-                }
-                currentPage = 0;
-            } else if (button.customId === 'previous_page') {
-                if (currentPage === 0) {
-                    await button.reply({
-                        content: 'You are already on the first page.',
-                        ephemeral: true
-                    });
-                    return;
-                }
+                responseEmbed.setDescription(newDescription.join(''));
+                responseEmbed.setFooter({
+                    text: totalPages === 1 ? 'Page 1 of 1' : `Page ${currentPage + 1} of ${totalPages}`
+                });
 
-                currentPage = Math.max(currentPage - 1, 0);
-            } else if (button.customId === 'next_page') {
-                if (currentPage === totalPages - 1) {
-                    await button.reply({
-                        content: 'You are already on the last page.',
-                        ephemeral: true
-                    });
-                    return;
-                }
+                buttonsBuilders[0].setDisabled(currentPage === 0 || !queue.tracks.size);
+                buttonsBuilders[1].setDisabled(currentPage === 0 || !queue.tracks.size);
+                buttonsBuilders[2].setDisabled(currentPage === totalPages - 1 || !queue.tracks.size);
+                buttonsBuilders[3].setDisabled(currentPage === totalPages - 1 || !queue.tracks.size);
 
-                currentPage = Math.min(currentPage + 1, totalPages - 1);
-            } else if (button.customId === 'fast_next_page') {
-                if (currentPage === totalPages - 1) {
-                    await button.reply({
-                        content: 'You are already on the last page.',
-                        ephemeral: true
-                    });
-                    return;
-                }
+                await button
+                    .update({
+                        embeds: [responseEmbed],
+                        components: [actionRow]
+                    })
+                    .catch(() => {});
+            };
 
-                currentPage = totalPages - 1;
+            switch (button.customId) {
+                case 'fast_previous_page':
+                    if (currentPage !== 0) currentPage = 0;
+                    break;
+                case 'previous_page':
+                    if (currentPage !== 0) currentPage = Math.max(currentPage - 1, 0);
+                    break;
+                case 'next_page':
+                    if (currentPage !== totalPages - 1) currentPage = Math.min(currentPage + 1, totalPages - 1);
+                    break;
+                case 'fast_next_page':
+                    if (currentPage !== totalPages - 1) currentPage = totalPages - 1;
+                    break;
+                default:
+                    break;
             }
 
-            const newEmbedDescription = [
-                `**Now Playing:**\n\`${currentTrackDuration}\` | [**${currentTrackTitle}**](${currentTrackUrl})\n${this.createProgressBar(queue)}\n\n`,
-                `**Up Next:**\n${this.getTracksMap(queue, currentPage, tracksToDisplay)}`
-            ];
-
-            responseEmbed.setDescription(newEmbedDescription.join(''));
-            responseEmbed.setFooter({
-                text: totalPages === 1 ? 'Page 1 of 1' : `Page ${currentPage + 1} of ${totalPages}`
-            });
-
-            buttonsBuilders[0].setDisabled(currentPage === 0 ?? queueSize === 0);
-            buttonsBuilders[1].setDisabled(currentPage === 0 ?? queueSize === 0);
-            buttonsBuilders[2].setDisabled(currentPage === totalPages - 1 ?? queueSize === 0);
-            buttonsBuilders[3].setDisabled(currentPage === totalPages - 1 ?? queueSize === 0);
-
-            await button
-                .update({
-                    embeds: [responseEmbed],
-                    components: [actionRow]
-                })
-                .catch(() => {});
+            await update();
         });
 
         collector.on('end', async () => {
-            await response
-                .edit({
-                    components: []
-                })
-                .catch(() => {});
+            await response.edit({ components: [] }).catch(() => {});
         });
     }
 }

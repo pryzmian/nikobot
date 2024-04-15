@@ -52,7 +52,7 @@ export default class SkipCommand extends BaseCommand {
             return;
         }
 
-        if (queue && queue.tracks.size === 0) {
+        if (queue && !queue.repeatMode && !queue.tracks.data.length) {
             embedResponse.setDescription('There are no songs in the queue to skip!').setColor('Red');
             await interaction.reply({ embeds: [embedResponse], ephemeral: true });
             return;

@@ -2,13 +2,15 @@ import {
     ChatInputCommandInteraction,
     EmbedBuilder,
     GuildMember,
+    InteractionResponse,
+    Message,
     PermissionsBitField,
     SlashCommandBuilder
 } from 'discord.js';
 import { BaseCommand } from '../structures/Command.js';
 import { QueueRepeatMode, useMainPlayer } from 'discord-player';
 
-export default class PingCommand extends BaseCommand {
+export default class PlayCommand extends BaseCommand {
     public constructor() {
         super({
             isBeta: true,
@@ -76,7 +78,6 @@ export default class PingCommand extends BaseCommand {
                 leaveOnEmpty: false,
                 leaveOnEnd: false,
                 leaveOnStop: false,
-                repeatMode: QueueRepeatMode.AUTOPLAY,
                 volume: 50,
                 metadata: {
                     client: interaction.client,
@@ -94,12 +95,12 @@ export default class PingCommand extends BaseCommand {
         await interaction.editReply({ embeds: [embedResponse.toJSON()] });
     }
 
-    private async sendErrorMessage(interaction: ChatInputCommandInteraction, message: string): Promise<void> {
+    private async sendErrorMessage(interaction: ChatInputCommandInteraction, message: string): Promise<InteractionResponse<boolean> | Message<boolean>> {
         const embedResponse = new EmbedBuilder().setDescription(message).setColor('Red');
         if (interaction.replied && interaction.deferred) {
-            await interaction.editReply({ embeds: [embedResponse.toJSON()] });
+            return await interaction.editReply({ embeds: [embedResponse.toJSON()] });
         } else {
-            await interaction.reply({ embeds: [embedResponse.toJSON()], ephemeral: true });
+            return await interaction.reply({ embeds: [embedResponse.toJSON()], ephemeral: true });
         }
     }
 }

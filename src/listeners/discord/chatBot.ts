@@ -42,7 +42,7 @@ export default class MessageCreateEvent extends BaseEvent {
             await this.replyDefaultGreeting(message);
             return;
         }
-
+        
         try {
             await this.handleChat(message, prompt);
         } catch (error) {
