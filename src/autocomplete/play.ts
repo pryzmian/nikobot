@@ -18,25 +18,24 @@ export default class PingAutocomplete extends BaseAutocomplete {
 
         const player = useMainPlayer();
         const searchResults = await player.search(song, {
-            requestedBy: interaction.user
+            requestedBy: interaction.user,
+            fallbackSearchEngine: 'youtubeSearch'
         });
 
         let tracks;
 
-        tracks = searchResults.tracks
-            .map((track) => ({
-                name: `${track.title} (Author: ${track.author})`,
-                value: track.url
-            }))
-            .slice(0, 10);
-
         if (searchResults.hasPlaylist()) {
-            tracks = searchResults.tracks
-                .map(() => ({
+            tracks = [
+                {
                     name: `Playlist: ${searchResults.playlist!.title}`,
                     value: searchResults.playlist!.url
-                }))
-                .slice(0, 1);
+                }
+            ].slice(0, 1);
+        } else {
+            tracks = searchResults.tracks.slice(0, 10).map((track) => ({
+                name: `${track.title} (Author: ${track.author})`,
+                value: track.url
+            }));
         }
 
         try {
