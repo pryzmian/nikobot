@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { BaseComponent } from '../../structures/Component.js';
+import { BaseComponent } from '../../structures/components/Component.js';
 import { NikoClient } from '../../structures/Client.js';
 
 export async function registerComponents(client: NikoClient): Promise<void> {

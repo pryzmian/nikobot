@@ -1,6 +1,13 @@
-import { GuildMember, CacheType, ButtonInteraction, ChatInputCommandInteraction, APIActionRowComponent, APIMessageActionRowComponent } from 'discord.js';
+import {
+    GuildMember,
+    CacheType,
+    ButtonInteraction,
+    ChatInputCommandInteraction,
+    APIActionRowComponent,
+    APIMessageActionRowComponent
+} from 'discord.js';
 import { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
-import { BaseCommand } from '../structures/Command.js';
+import { BaseCommand } from '../structures/commands/Command.js';
 import { GuildQueue, useQueue } from 'discord-player';
 
 export default class QueueCommand extends BaseCommand {
@@ -146,16 +153,24 @@ export default class QueueCommand extends BaseCommand {
 
             switch (button.customId) {
                 case 'fast_previous_page':
-                    if (currentPage !== 0) currentPage = 0;
+                    if (currentPage !== 0) {
+                        currentPage = 0;
+                    }
                     break;
                 case 'previous_page':
-                    if (currentPage !== 0) currentPage = Math.max(currentPage - 1, 0);
+                    if (currentPage !== 0) {
+                        currentPage = Math.max(currentPage - 1, 0);
+                    }
                     break;
                 case 'next_page':
-                    if (currentPage !== totalPages - 1) currentPage = Math.min(currentPage + 1, totalPages - 1);
+                    if (currentPage !== totalPages - 1) {
+                        currentPage = Math.min(currentPage + 1, totalPages - 1);
+                    }
                     break;
                 case 'fast_next_page':
-                    if (currentPage !== totalPages - 1) currentPage = totalPages - 1;
+                    if (currentPage !== totalPages - 1) {
+                        currentPage = totalPages - 1;
+                    }
                     break;
                 default:
                     break;

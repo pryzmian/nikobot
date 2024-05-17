@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { NikoClient } from '../../structures/Client.js';
-import { BaseAutocomplete } from '../../structures/Autocomplete.js';
+import { BaseAutocomplete } from '../../structures/autocomplete/Autocomplete.js';
 
 export async function registerAutocomplete(client: NikoClient): Promise<void> {
     const timeNow = performance.now();

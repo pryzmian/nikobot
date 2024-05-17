@@ -1,7 +1,7 @@
-import { BaseEvent } from '../../structures/Event.js';
+import { BaseEvent } from '../../structures/events/Event.js';
 import { NikoClient } from '../../structures/Client.js';
 import { ChannelType, Events, Message } from 'discord.js';
-import { ChatHistoryDocument, ChatHistoryModel } from '../../database/models/ChatBot.js';
+import { ChatHistoryDocument } from '../../database/ChatBotHistory.js';
 import { Content, GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 
 // Regular expression to match mentions
@@ -14,8 +14,7 @@ export default class MessageCreateEvent extends BaseEvent {
      */
     public constructor(client: NikoClient) {
         super(client, {
-            event: Events.MessageCreate,
-            once: false
+            name: Events.MessageCreate
         });
     }
 
@@ -42,7 +41,7 @@ export default class MessageCreateEvent extends BaseEvent {
             await this.replyDefaultGreeting(message);
             return;
         }
-        
+
         try {
             await this.handleChat(message, prompt);
         } catch (error) {
@@ -98,7 +97,7 @@ export default class MessageCreateEvent extends BaseEvent {
             }
         ];
 
-        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ model: 'gemini-pro', ...safetySettings });
 
         const chat = model.startChat({
@@ -126,15 +125,16 @@ export default class MessageCreateEvent extends BaseEvent {
     }
 
     private async getOrCreateChatHistory(guildId: string): Promise<ChatHistoryDocument> {
-        let chatHistory = await ChatHistoryModel.findOne({ guildId });
+        let chatHistory = await this.db?.chatbot?.findOne({ guildId });
         if (!chatHistory) {
-            chatHistory = new ChatHistoryModel({ guildId, history: [] });
+            chatHistory = await this.db?.chatbot.create({ guildId, history: [] });
+            await chatHistory?.save();
         }
         return chatHistory as ChatHistoryDocument;
     }
 
     private async sendResponseInChunks(message: Message, text: string): Promise<void> {
-        const chunks = [];
+        const chunks: string[] = [];
         for (let i = 0; i < text.length; i += 2000) {
             chunks.push(text.substring(i, i + 2000));
         }

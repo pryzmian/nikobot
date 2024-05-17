@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import './classes/MongoClient.js';
 
 import { NikoClient } from './structures/Client.js';
 const client = new NikoClient();

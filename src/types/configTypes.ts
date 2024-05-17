@@ -3,3 +3,12 @@ export type SystemOptions = {
     systemMessageChannelId: string;
     systemUserId: string;
 };
+
+export type Emojis = {
+    error: string;
+    success: string;
+    previous: string;
+    pause: string;
+    next: string;
+    stop: string;
+};

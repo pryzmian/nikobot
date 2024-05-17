@@ -1,15 +1,14 @@
 import { GuildQueue, GuildQueueEvent } from 'discord-player';
 import { NikoClient } from '../../structures/Client.js';
-import { BaseEvent } from '../../structures/Event.js';
+import { BaseEvent } from '../../structures/events/Event.js';
 import { IQueueMetadata } from '../../types/queueMetadata.js';
 import { Message } from 'discord.js';
 
 export default class PlayerFinishEvent extends BaseEvent {
     public constructor(client: NikoClient) {
         super(client, {
-            event: GuildQueueEvent.playerFinish,
-            emitter: client.player.events,
-            once: false
+            name: GuildQueueEvent.playerFinish,
+            emitter: client.player.events
         });
     }
 
@@ -36,7 +35,7 @@ export default class PlayerFinishEvent extends BaseEvent {
                 await fetchLastAnnounceMessage.delete();
             } catch (error) {
                 if (error instanceof Error) {
-                    console.error('playerFinish event: Error deleting previous now-playing message.', error);
+                    console.error('playerFinish name: Error deleting previous now-playing message.', error);
                 }
             }
         }

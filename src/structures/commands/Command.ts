@@ -1,7 +1,7 @@
-import type { CommandOptions } from '../types/command/CommandOptions.js';
-import type { CommandBase } from '../types/command/BaseCommand.js';
+import type { CommandOptions } from '../../types/command/CommandOptions.js';
+import type { CommandBase } from '../../types/command/BaseCommand.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { Base } from './Base.js';
+import { Base } from '../Base.js';
 
 export abstract class BaseCommand extends Base implements CommandBase {
     public readonly isDev?: boolean;

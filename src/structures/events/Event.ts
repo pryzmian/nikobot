@@ -1,20 +1,18 @@
 import EventEmitter from 'node:events';
-import { EventOptions } from '../types/event/EventOptions.js';
-import { Base } from './Base.js';
+import { EventOptions } from '../../types/event/EventOptions.js';
+import { Base } from '../Base.js';
 import { ClientEvents } from 'discord.js';
-import { NikoClient } from './Client.js';
+import { NikoClient } from '../Client.js';
 
 export abstract class BaseEvent<E = keyof ClientEvents | symbol> extends Base {
-    public readonly client: NikoClient;
-    public readonly emitter: EventEmitter | null;
-    public readonly event: string | symbol;
-    public readonly once: boolean;
+    public readonly emitter?: EventEmitter | null;
+    public readonly name: string | symbol;
+    public readonly once?: boolean | false;
 
-    constructor(client: NikoClient, options: EventOptions) {
+    constructor(public client: NikoClient, options: EventOptions) {
         super();
-        this.client = client;
         this.emitter = this.resolveEmitter(options.emitter as EventEmitter);
-        this.event = options.event ?? this.client;
+        this.name = options.name ?? this.client;
         this.once = options.once ?? false;
     }
 

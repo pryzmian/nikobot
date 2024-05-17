@@ -1,21 +1,23 @@
 import { GuildQueue, GuildQueueEvent, Track } from 'discord-player';
 import { NikoClient } from '../../structures/Client.js';
-import { BaseEvent } from '../../structures/Event.js';
-import { IQueueMetadata } from '../../types/queueMetadata.js';
-import { Message } from 'discord.js';
+import { BaseEvent } from '../../structures/events/Event.js';
+import { User } from 'discord.js';
 
 export default class WillAutoPlayEvent extends BaseEvent {
     public constructor(client: NikoClient) {
         super(client, {
-            event: GuildQueueEvent.willAutoPlay,
-            emitter: client.player.events,
-            once: false
+            name: GuildQueueEvent.willAutoPlay,
+            emitter: client.player.events
         });
     }
 
-    public async execute(queue: GuildQueue<IQueueMetadata>, tracks: Track[], done: (track: Track) => void) {
+    public async execute(
+        queue: GuildQueue,
+        tracks: Array<Track<unknown>>,
+        done: (track: Track<unknown> | null) => void
+    ) {
         const [track] = tracks;
-        track.requestedBy = this.client.user;
+        track.requestedBy = this.client.user as User;
         done(track);
     }
 }

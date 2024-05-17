@@ -6,7 +6,7 @@ import {
     InteractionType,
     MessageComponentInteraction
 } from 'discord.js';
-import { BaseEvent } from '../../structures/Event.js';
+import { BaseEvent } from '../../structures/events/Event.js';
 import { NikoClient } from '../../structures/Client.js';
 
 export default class InteractionCreateEvent extends BaseEvent {
@@ -16,8 +16,7 @@ export default class InteractionCreateEvent extends BaseEvent {
      */
     constructor(client: NikoClient) {
         super(client, {
-            event: Events.InteractionCreate,
-            once: false
+            name: Events.InteractionCreate
         });
     }
 
@@ -67,13 +66,14 @@ export default class InteractionCreateEvent extends BaseEvent {
      * @returns {Promise<void>} A Promise that resolves when execution is complete.
      */
     private async handleMessageComponentInteraction(interaction: MessageComponentInteraction): Promise<void> {
-        const component = this.client.components.get(interaction.customId);
+        const [componentId, referenceId] = interaction.customId.split('_');
+        const component = this.client.components.get(componentId);
         if (!component) {
             return;
         }
 
         try {
-            await component.execute(interaction);
+            await component.execute({ interaction, referenceId });
         } catch (error) {
             console.error(error);
             await interaction.reply({ content: 'There was an error while executing this component!', ephemeral: true });

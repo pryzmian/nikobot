@@ -1,4 +1,4 @@
-import { BaseCommand } from '../structures/Command.js';
+import { BaseCommand } from '../structures/commands/Command.js';
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, GuildMember } from 'discord.js';
 import { useQueue } from 'discord-player';
 

@@ -3,6 +3,8 @@ import 'dotenv/config';
 import { BridgeProvider, BridgeSource } from '@discord-player/extractor';
 import { Player } from 'discord-player';
 import { NikoClient } from './Client.js';
+import { RedisQueryCache } from '../classes/QueryCache.js';
+import fs from 'node:fs';
 
 export class NikoPlayer extends Player {
     public constructor(client: NikoClient) {
@@ -14,12 +16,13 @@ export class NikoPlayer extends Player {
                 filter: 'audioonly',
                 requestOptions: {
                     headers: {
-                        cookie: process.env.YOUTUBE_COOKIE
+                        cookie: JSON.parse(fs.readFileSync('cookies.json').toString())
                     }
                 }
             },
             skipFFmpeg: false,
-            useLegacyFFmpeg: false
+            useLegacyFFmpeg: false,
+            queryCache: new RedisQueryCache(client.redis)
         });
     }
 

@@ -7,8 +7,8 @@ import {
     PermissionsBitField,
     SlashCommandBuilder
 } from 'discord.js';
-import { BaseCommand } from '../structures/Command.js';
-import { QueueRepeatMode, useMainPlayer } from 'discord-player';
+import { BaseCommand } from '../structures/commands/Command.js';
+import { useMainPlayer } from 'discord-player';
 
 export default class PlayCommand extends BaseCommand {
     public constructor() {
@@ -89,14 +89,17 @@ export default class PlayCommand extends BaseCommand {
 
         const resultMessage = searchResult.hasPlaylist()
             ? `Queued playlist [${searchResult.playlist?.title}](${searchResult.playlist?.url}) with \`${searchResult.playlist?.tracks.length}\` songs!`
-            : `Queued [${searchResult.tracks[0].title}](${searchResult.tracks[0].url})!`;
+            : `Queued [${searchResult.tracks[0].title}](${searchResult.tracks[0].url}) !`;
 
-        embedResponse.setDescription(resultMessage).setColor('Green');
+        embedResponse.setDescription(resultMessage).setColor('#2B2D31');
         await interaction.editReply({ embeds: [embedResponse.toJSON()] });
     }
 
-    private async sendErrorMessage(interaction: ChatInputCommandInteraction, message: string): Promise<InteractionResponse<boolean> | Message<boolean>> {
-        const embedResponse = new EmbedBuilder().setDescription(message).setColor('Red');
+    private async sendErrorMessage(
+        interaction: ChatInputCommandInteraction,
+        message: string
+    ): Promise<InteractionResponse<boolean> | Message<boolean>> {
+        const embedResponse = new EmbedBuilder().setDescription(message).setColor('#2B2D31');
         if (interaction.replied && interaction.deferred) {
             return await interaction.editReply({ embeds: [embedResponse.toJSON()] });
         } else {

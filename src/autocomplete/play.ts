@@ -1,8 +1,8 @@
 import type { AutocompleteInteraction } from 'discord.js';
-import { BaseAutocomplete } from '../structures/Autocomplete.js';
-import { useMainPlayer } from 'discord-player';
+import { BaseAutocomplete } from '../structures/autocomplete/Autocomplete.js';
+import { Playlist, QueryType, Track, useMainPlayer } from 'discord-player';
 
-export default class PingAutocomplete extends BaseAutocomplete {
+export default class PlayAutocomplete extends BaseAutocomplete {
     public constructor() {
         super({
             name: 'play'
@@ -10,7 +10,8 @@ export default class PingAutocomplete extends BaseAutocomplete {
     }
 
     public async execute(interaction: AutocompleteInteraction): Promise<void> {
-        const song = interaction.options.getString('song');
+        const song = interaction.options.getFocused().toLowerCase();
+
         if (!song) {
             await interaction.respond([]);
             return;
@@ -19,7 +20,7 @@ export default class PingAutocomplete extends BaseAutocomplete {
         const player = useMainPlayer();
         const searchResults = await player.search(song, {
             requestedBy: interaction.user,
-            fallbackSearchEngine: 'youtubeSearch'
+            fallbackSearchEngine: QueryType.YOUTUBE_SEARCH
         });
 
         let tracks;
@@ -27,13 +28,13 @@ export default class PingAutocomplete extends BaseAutocomplete {
         if (searchResults.hasPlaylist()) {
             tracks = [
                 {
-                    name: `Playlist: ${searchResults.playlist!.title}`,
+                    name: `Playlist: ${this.spliceName(searchResults.playlist!)}`,
                     value: searchResults.playlist!.url
                 }
             ].slice(0, 1);
         } else {
-            tracks = searchResults.tracks.slice(0, 10).map((track) => ({
-                name: `${track.title} (Author: ${track.author})`,
+            tracks = searchResults.tracks.slice(0, 5).map((track) => ({
+                name: `${this.spliceName(track)} (Author: ${track.author})`,
                 value: track.url
             }));
         }
@@ -41,7 +42,11 @@ export default class PingAutocomplete extends BaseAutocomplete {
         try {
             await interaction.respond(tracks);
         } catch (error) {
-            console.error(error, 'An error occurred while executing the "play" autocomplete.');
+            return;
         }
+    }
+
+    private spliceName(ctx: Track | Playlist): string {
+        return ctx.title.length > 100 ? `${ctx.title.substring(0, 50)}...` : ctx.title;
     }
 }

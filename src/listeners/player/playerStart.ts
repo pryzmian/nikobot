@@ -1,15 +1,24 @@
 import { GuildQueue, GuildQueueEvent, Track } from 'discord-player';
 import { NikoClient } from '../../structures/Client.js';
-import { BaseEvent } from '../../structures/Event.js';
+import { BaseEvent } from '../../structures/events/Event.js';
 import { IQueueMetadata } from '../../types/queueMetadata.js';
-import { APIEmbed, ColorResolvable, EmbedBuilder } from 'discord.js';
+import {
+    APIActionRowComponent,
+    APIEmbed,
+    APIMessageActionRowComponent,
+    ButtonStyle,
+    ColorResolvable,
+    ComponentType,
+    EmbedBuilder,
+    escapeMarkdown
+} from 'discord.js';
+import { createButton } from '../../utils/functions/createButton.js';
 
 export default class PlayerStartEvent extends BaseEvent {
     constructor(client: NikoClient) {
         super(client, {
-            event: GuildQueueEvent.playerStart,
-            emitter: client.player.events,
-            once: false
+            name: GuildQueueEvent.playerStart,
+            emitter: client.player.events
         });
     }
 
@@ -28,8 +37,20 @@ export default class PlayerStartEvent extends BaseEvent {
         }
 
         try {
-            const nowPlayingEmbed = this.buildNowPlayingEmbed(track, queue.guild.members.me?.displayHexColor);
-            const announceMessage = await channel.send({ embeds: [nowPlayingEmbed] });
+            const nowPlayingEmbed = this.buildNowPlayingEmbed(track, '#2B2D31');
+            const actionRow: APIActionRowComponent<APIMessageActionRowComponent> = {
+                type: ComponentType.ActionRow,
+                components: []
+            };
+
+            createButton(`previous-button_${track.id}`, this.icons.previous, ButtonStyle.Secondary, actionRow);
+            createButton(`pause-button_${track.id}`, this.icons.pause, ButtonStyle.Secondary, actionRow);
+            createButton(`next-button_${track.id}`, this.icons.next, ButtonStyle.Secondary, actionRow);
+
+            const announceMessage = await channel.send({
+                embeds: [nowPlayingEmbed],
+                components: [actionRow]
+            });
 
             if (queue.metadata && announceMessage) {
                 queue.metadata.lastPlayerStartMessage = announceMessage;
@@ -46,7 +67,7 @@ export default class PlayerStartEvent extends BaseEvent {
                 name: track.requestedBy?.username || 'Unknown User',
                 iconURL: track.requestedBy?.displayAvatarURL() || undefined
             })
-            .setDescription(`**Now playing ♪**\n[**${track.title}**](${track.url})`)
+            .setDescription(`**Now playing ♪**\n[**${track.title}**](${escapeMarkdown(track.url)})`)
             .setThumbnail(track.thumbnail)
             .toJSON();
     }

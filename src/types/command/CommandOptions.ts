@@ -1,8 +1,8 @@
-import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
+import { SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
 
 export type CommandOptions = {
     isDev?: boolean | undefined;
     isBeta?: boolean | undefined;
     isSystemCommand?: boolean | undefined;
-    data: Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> | SlashCommandSubcommandsOnlyBuilder;
+    data: Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> | SlashCommandOptionsOnlyBuilder;
 };

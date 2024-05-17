@@ -1,7 +1,11 @@
-import { ComponentType, MessageComponentInteraction } from 'discord.js';
+import { MessageComponentInteraction } from 'discord.js';
 
 export type ComponentBase = {
     name: string;
-    type: ComponentType;
-    execute: (interaction: MessageComponentInteraction) => Promise<void> | void;
+    execute: (params: BaseComponentParams) => Promise<void> | void;
+};
+
+export type BaseComponentParams = {
+    interaction: MessageComponentInteraction;
+    referenceId?: string;
 };

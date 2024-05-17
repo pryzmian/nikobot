@@ -1,6 +1,6 @@
-import type { AutocompleteBase } from '../types/autocomplete/BaseAutocomplete.js';
-import type { AutocompleteOptions } from '../types/autocomplete/AutocompleteOptions.js';
-import { Base } from './Base.js';
+import type { AutocompleteBase } from '../../types/autocomplete/BaseAutocomplete.js';
+import type { AutocompleteOptions } from '../../types/autocomplete/AutocompleteOptions.js';
+import { Base } from '../Base.js';
 import { AutocompleteInteraction } from 'discord.js';
 
 export abstract class BaseAutocomplete extends Base implements AutocompleteBase {

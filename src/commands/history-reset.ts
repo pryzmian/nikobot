@@ -1,5 +1,4 @@
-import { BaseCommand } from '../structures/Command.js';
-import { ChatHistoryModel } from '../database/models/ChatBot.js';
+import { BaseCommand } from '../structures/commands/Command.js';
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
 
 export default class HistoryResetCommand extends BaseCommand {
@@ -34,7 +33,7 @@ export default class HistoryResetCommand extends BaseCommand {
             return;
         }
 
-        const historyModel = await ChatHistoryModel.findOne({ guildId: guild.id });
+        const historyModel = await this.db?.chatbot.findOne({ guildId: guild.id });
         const historyExists = !!historyModel;
 
         // if the chat history does not exist, return an error message
@@ -46,7 +45,7 @@ export default class HistoryResetCommand extends BaseCommand {
 
         try {
             // if the chat history exists, reset it
-            await ChatHistoryModel.findOneAndUpdate({ guildId: guild.id }, { history: [] });
+            await this.db?.chatbot.findOneAndUpdate({ guildId: guild.id }, { history: [] });
             embedResponse.setDescription('The chat history for this server has been reset.').setColor('Green');
             await interaction.editReply({ embeds: [embedResponse.toJSON()] });
         } catch (error) {

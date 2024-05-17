@@ -3,7 +3,7 @@ import 'dotenv/config';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { NikoClient } from '../../structures/Client.js';
-import { BaseCommand } from '../../structures/Command.js';
+import { BaseCommand } from '../../structures/commands/Command.js';
 import { REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes } from 'discord.js';
 import type { SystemOptions } from '../../types/configTypes.js';
 import config from 'config';
@@ -36,8 +36,8 @@ export async function registerCommands(client: NikoClient): Promise<void> {
             client.commands.set(command.data.name, command);
 
             command.isSystemCommand
-                ? systemCommandsArray.push(command.toJSON())
-                : userCommandsArray.push(command.toJSON());
+                ? systemCommandsArray.push(command.data.toJSON())
+                : userCommandsArray.push(command.data.toJSON());
         } catch (error) {
             if (error instanceof Error) {
                 console.error(error, `Error getting command data for command ${command.data.name ?? 'Unknown'}:`);

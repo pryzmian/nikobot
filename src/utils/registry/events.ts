@@ -1,34 +1,40 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { NikoClient } from '../../structures/Client.js';
-import { BaseEvent } from '../../structures/Event.js';
+import { BaseEvent } from '../../structures/events/Event.js';
+import { promises as fs, Dirent } from 'node:fs';
 
 export async function registerEvents(client: NikoClient): Promise<void> {
     const timeNow = performance.now();
 
     const eventsPath = path.resolve('./dist/listeners');
-    const events = await getEventFiles(eventsPath);
+    const eventFiles = await getEventFiles(eventsPath);
 
-    const eventModules = await Promise.all<BaseEvent>(
-        events.map(async (event) => {
-            const { default: Event } = await import(event.filePath);
-            return new Event(client);
-        })
-    );
+    // Pre-create an empty array for improved performance
+    const eventModules: BaseEvent[] = [];
 
-    for (const event of eventModules) {
+    for (const eventFile of eventFiles) {
         try {
-            const emitter = event.emitter!;
-            const maxListeners = emitter.getMaxListeners();
+            const { default: Event } = await import(eventFile.filePath);
+            const event = new Event(client); // Create the event instance directly
 
-            if (maxListeners !== 0) {
-                emitter.setMaxListeners(maxListeners + 1);
+            delete require.cache[eventFile.filePath]; // Clear the cache to avoid memory leaks
+
+            // Early type check (optional but can improve safety)
+            if (!(event instanceof BaseEvent)) {
+                throw new Error(`Event file '${eventFile.filePath}' does not export a BaseEvent subclass`);
             }
 
-            emitter[event.once ? 'once' : 'on'](event.event as string, event.execute.bind(event));
+            eventModules.push(event); // Add to the pre-created array
+
+            // Set max listeners only when necessary (avoids unnecessary overhead)
+            if (event.emitter) {
+                event.emitter.setMaxListeners((event.emitter.getMaxListeners() || 0) + 1);
+            }
+
+            event.emitter?.[event.once ? 'once' : 'on'](event.name as string, event.execute.bind(event));
         } catch (error) {
             if (error instanceof Error) {
-                console.error(`Error registering event ${event.event as string}:`, error);
+                console.error(`Error registering event '${eventFile.filePath}':`, error);
             } else {
                 throw error;
             }
@@ -42,7 +48,7 @@ export async function registerEvents(client: NikoClient): Promise<void> {
 }
 
 async function getEventFiles(directory: string): Promise<{ filePath: string }[]> {
-    const files = await fs.readdir(directory, { withFileTypes: true });
+    const files: Dirent[] = await fs.readdir(directory, { withFileTypes: true });
     const eventFiles: { filePath: string }[] = [];
 
     for (const file of files) {

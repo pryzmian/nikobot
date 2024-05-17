@@ -1,5 +1,5 @@
 import { Track, useQueue } from 'discord-player';
-import { BaseCommand } from '../structures/Command.js';
+import { BaseCommand } from '../structures/commands/Command.js';
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, GuildMember } from 'discord.js';
 
 export default class SkipCommand extends BaseCommand {
@@ -48,12 +48,6 @@ export default class SkipCommand extends BaseCommand {
 
         if (queue && !queue.currentTrack) {
             embedResponse.setDescription('There is no song currently playing you can skip!').setColor('Red');
-            await interaction.reply({ embeds: [embedResponse], ephemeral: true });
-            return;
-        }
-
-        if (queue && !queue.repeatMode && !queue.tracks.data.length) {
-            embedResponse.setDescription('There are no songs in the queue to skip!').setColor('Red');
             await interaction.reply({ embeds: [embedResponse], ephemeral: true });
             return;
         }

@@ -1,5 +1,5 @@
-import { GuildQueue, QueueRepeatMode, Track, useQueue } from 'discord-player';
-import { BaseCommand } from '../structures/Command.js';
+import { GuildQueue, QueueRepeatMode, useQueue } from 'discord-player';
+import { BaseCommand } from '../structures/commands/Command.js';
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, GuildMember } from 'discord.js';
 
 export default class RepeatCommand extends BaseCommand {
@@ -29,7 +29,9 @@ export default class RepeatCommand extends BaseCommand {
 
         // Check if the member is in a voice channel
         if (!memberChannel) {
-            embedResponse.setDescription('You need to be in a voice channel to change the repeat mode!').setColor('Red');
+            embedResponse
+                .setDescription('You need to be in a voice channel to change the repeat mode!')
+                .setColor('Red');
             await interaction.reply({ embeds: [embedResponse], ephemeral: true });
             return;
         }
@@ -53,13 +55,15 @@ export default class RepeatCommand extends BaseCommand {
         }
 
         if (queue && !queue.currentTrack) {
-            embedResponse.setDescription('There is no song currently playing to change the repeat mode!').setColor('Red');
+            embedResponse
+                .setDescription('There is no song currently playing to change the repeat mode!')
+                .setColor('Red');
             await interaction.reply({ embeds: [embedResponse], ephemeral: true });
             return;
         }
 
         try {
-            switch (mode) { 
+            switch (mode) {
                 case QueueRepeatMode.TRACK:
                     queue.setRepeatMode(QueueRepeatMode.TRACK);
                     embedResponse.setDescription('The repeat mode has been set to `Track`!').setColor('Green');
@@ -74,9 +78,7 @@ export default class RepeatCommand extends BaseCommand {
                     break;
                 default:
                     embedResponse
-                        .setDescription(
-                            `The repeat mode is currently set to \`${this.getRepeatModeString(queue)}\`!`
-                        )
+                        .setDescription(`The repeat mode is currently set to \`${this.getRepeatModeString(queue)}\`!`)
                         .setColor('Blue');
                     break;
             }
@@ -90,7 +92,7 @@ export default class RepeatCommand extends BaseCommand {
         }
     }
 
-    private getRepeatModeString(queue: GuildQueue): string { 
+    private getRepeatModeString(queue: GuildQueue): string {
         return QueueRepeatMode[queue.repeatMode].toLowerCase();
     }
 }

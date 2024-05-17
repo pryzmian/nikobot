@@ -1,4 +1,4 @@
-import { BaseCommand } from '../structures/Command.js';
+import { BaseCommand } from '../structures/commands/Command.js';
 import { useQueue } from 'discord-player';
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, GuildMember, CacheType } from 'discord.js';
 
@@ -43,6 +43,20 @@ export default class VolumeCommand extends BaseCommand {
 
         const queue = useQueue(interaction.guildId!);
         const volumeValue = interaction.options.getInteger('volume') as number;
+
+        if (!queue) {
+            embedResponse.setDescription('There is no queue playing in this server!').setColor('Red');
+            await interaction.reply({ embeds: [embedResponse.toJSON()], ephemeral: true });
+            return;
+        }
+
+        if (queue && !queue.currentTrack) {
+            embedResponse
+                .setDescription('There are no tracks currently playing to set the volume for!')
+                .setColor('Red');
+            await interaction.reply({ embeds: [embedResponse.toJSON()], ephemeral: true });
+            return;
+        }
 
         try {
             if (volumeValue === 1) {
