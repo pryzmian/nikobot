@@ -46,7 +46,7 @@
     "google-safe-browsing": "1.0.3",
     "ioredis": "5.4.1",
     "mediaplex": "0.0.9",
-    "mongoose": "8.2.4",
+    "mongoose": "8.9.5",
     "pino": "8.19.0",
     "pino-loki": "2.2.1",
     "pino-pretty": "11.0.0",
